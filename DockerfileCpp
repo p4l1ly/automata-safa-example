@@ -1,0 +1,35 @@
+FROM ubuntu:focal
+
+RUN apt-get update
+RUN apt-get install -y wget unzip cmake g++
+
+RUN mkdir /root/sources
+WORKDIR /root/sources
+
+RUN mkdir /root/.local
+RUN wget https://github.com/capnproto/capnproto/archive/master.zip -O capnproto.zip &&\
+    unzip capnproto.zip &&\
+    cd capnproto-master &&\
+    cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=~/.local/ -S . -B build &&\
+    cmake --build build &&\
+    cmake --install build
+
+ENV PATH=/root/.local/bin:$PATH
+ENV LD_LIBRARY_PATH=/root/.local/lib
+
+RUN cd /root/.local/include/capnp &&\
+    wget https://raw.githubusercontent.com/capnproto/capnproto-java/ad460a4723363885461d00d02183270038fb7b38/compiler/src/main/schema/capnp/java.capnp
+
+COPY dependencies/automata-safa-capnp-master.zip ./
+RUN unzip automata-safa-capnp-master.zip &&\
+    cd automata-safa-capnp-master &&\
+    cmake -DCMAKE_SYSTEM_PREFIX_PATH="$HOME/.local;/;/usr;/usr/local" -DCMAKE_INSTALL_PREFIX=~/.local/ -S . -B build &&\
+    cmake --build build &&\
+    cmake --install build
+
+COPY CMakeLists.txt main.c++ ./
+RUN cmake -DCMAKE_SYSTEM_PREFIX_PATH="$HOME/.local;/;/usr;/usr/local" -S . -B build &&\
+    cmake --build build
+
+COPY example/5 /root/example5.sepafa
+CMD build/automata-safa-example /root/example5.sepafa

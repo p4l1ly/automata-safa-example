@@ -1,0 +1,23 @@
+FROM ubuntu:focal
+
+RUN apt-get update
+RUN apt-get install -y unzip
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y wget cmake g++ pkg-config
+RUN apt-get install -y capnproto libcapnp-dev 
+
+RUN cd /usr/include/capnp &&\
+    wget https://raw.githubusercontent.com/capnproto/capnproto-java/ad460a4723363885461d00d02183270038fb7b38/compiler/src/main/schema/capnp/java.capnp
+
+COPY dependencies/automata-safa-capnp-master.zip ./
+RUN unzip automata-safa-capnp-master.zip &&\
+    cd automata-safa-capnp-master &&\
+    cmake -S . -B build &&\
+    cmake --build build --target automata-safa-capnp &&\
+    cmake --install build
+
+COPY CMakeLists.txt main.c++ ./
+RUN cmake -S . -B build &&\
+    cmake --build build
+
+COPY example/5 /root/example5.sepafa
+CMD build/automata-safa-example /root/example5.sepafa

@@ -1,0 +1,46 @@
+FROM ubuntu:focal
+
+RUN apt-get update
+RUN apt-get install -y unzip
+RUN apt-get install -y python3-dev python3-pip
+RUN apt-get install -y libcapnp-dev wget
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y cmake g++
+RUN apt-get install -y python3-venv
+
+RUN mkdir /root/sources
+WORKDIR /root/sources
+
+RUN mkdir /root/.local
+RUN wget https://github.com/capnproto/capnproto/archive/master.zip -O capnproto.zip &&\
+    unzip capnproto.zip &&\
+    cd capnproto-master &&\
+    cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=~/.local/ -S . -B build &&\
+    cmake --build build &&\
+    cmake --install build
+
+RUN cd /root/.local/include/capnp &&\
+    wget https://raw.githubusercontent.com/capnproto/capnproto-java/ad460a4723363885461d00d02183270038fb7b38/compiler/src/main/schema/capnp/java.capnp
+
+
+ENV PATH=/root/.local/bin:$PATH
+ENV LD_LIBRARY_PATH=/root/.local/lib
+ENV PKG_CONFIG_PATH=/root/.local/lib/pkgconfig
+
+RUN python3 -mvenv venv && . ./venv/bin/activate && pip install wheel pkgconfig cython
+RUN . ./venv/bin/activate &&\
+    pip install pycapnp==1.0.0b2 \
+        --install-option "--force-system-libcapnp" \
+        --global-option build_ext \
+        --global-option "-I/root/.local/include/" \
+        --global-option "-L/root/.local/lib/"
+
+COPY dependencies/automata-safa-capnp-master.zip ./
+RUN . ./venv/bin/activate &&\
+    unzip automata-safa-capnp-master.zip &&\
+    cd automata-safa-capnp-master &&\
+    pip install .
+
+COPY main.py ./
+COPY example/5 /root/example5.sepafa
+
+CMD sh -c ". ./venv/bin/activate && python3 main.py /root/example5.sepafa"
