@@ -5,12 +5,12 @@ RUN apt-get install -y unzip
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y wget cmake g++ pkg-config
 RUN apt-get install -y capnproto libcapnp-dev 
 
-RUN cd /usr/include/capnp &&\
-    wget https://raw.githubusercontent.com/capnproto/capnproto-java/ad460a4723363885461d00d02183270038fb7b38/compiler/src/main/schema/capnp/java.capnp
+ENV SCHEMA_VERSION=ce8554d0af8e43a34a031e9f408a4023920364eb
 
-COPY dependencies/automata-safa-capnp-master.zip ./
-RUN unzip automata-safa-capnp-master.zip &&\
-    cd automata-safa-capnp-master &&\
+RUN wget https://github.com/p4l1ly/automata-safa-capnp/archive/$SCHEMA_VERSION.zip -O automata-safa-capnp.zip &&\
+    unzip automata-safa-capnp.zip &&\
+    cd automata-safa-capnp-$SCHEMA_VERSION &&\
+    capnp --version &&\
     cmake -S . -B build &&\
     cmake --build build --target automata-safa-capnp &&\
     cmake --install build
@@ -19,5 +19,5 @@ COPY CMakeLists.txt main.c++ ./
 RUN cmake -S . -B build &&\
     cmake --build build
 
-COPY example/5 /root/example5.sepafa
-CMD build/automata-safa-example /root/example5.sepafa
+COPY example/148 /root/example148.sepafa
+CMD build/automata-safa-example /root/example148.sepafa

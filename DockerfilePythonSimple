@@ -5,17 +5,16 @@ RUN apt-get install -y unzip
 RUN apt-get install -y python3-dev python3-pip
 RUN apt-get install -y libcapnp-dev wget
 
-RUN cd /usr/include/capnp &&\
-    wget https://raw.githubusercontent.com/capnproto/capnproto-java/ad460a4723363885461d00d02183270038fb7b38/compiler/src/main/schema/capnp/java.capnp
+RUN pip3 install pycapnp==1.1.0
 
-RUN pip3 install pycapnp==1.0.0b2
+ENV SCHEMA_VERSION=ce8554d0af8e43a34a031e9f408a4023920364eb
 
-COPY dependencies/automata-safa-capnp-master.zip ./
-RUN unzip automata-safa-capnp-master.zip &&\
-    cd automata-safa-capnp-master &&\
+RUN wget https://github.com/p4l1ly/automata-safa-capnp/archive/$SCHEMA_VERSION.zip -O automata-safa-capnp.zip &&\
+    unzip automata-safa-capnp.zip &&\
+    cd automata-safa-capnp-$SCHEMA_VERSION &&\
     pip3 install .
 
 COPY main.py ./
-COPY example/5 /root/example5.sepafa
+COPY example/148 /root/example148.sepafa
 
-CMD python3 main.py /root/example5.sepafa
+CMD python3 main.py /root/example148.sepafa
