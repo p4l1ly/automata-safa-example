@@ -1,5 +1,7 @@
 # automata-capnp-example
 
+WARNING: The README is obsolete, see dockerfiles!
+
 This is a simple C++ and Python example of reading automata-safa-capnp's
 separated alternating finite automata. All the tools and libraries should be
 compatible with Linux, Windows and Mac, however I've tried it only with Linux.
